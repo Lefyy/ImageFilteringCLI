@@ -26,12 +26,16 @@ Image::Image(const std::string& path)
     : m_pixels(loadImageData(path, m_width, m_height, m_channels))
 {}
 
+Image::Image(int width, int height, int channels, const std::vector<unsigned char>& pixels)
+    : m_width(width), m_height(height), m_channels(channels), m_pixels(pixels)
+{}
+
 Image::Image(int width, int height, int channels, std::vector<unsigned char>&& pixels)
     : m_width(width), m_height(height), m_channels(channels), m_pixels(std::move(pixels))
 {}
 
 
-void Image::save(const std::string& path) {
+void Image::save(const std::string& path) const {
     stbi_write_png(
         path.c_str(),
         m_width,
