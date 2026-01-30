@@ -8,24 +8,28 @@
 
 #include <stdexcept>
 
-Image::Image(const std::string& path) {
-    unsigned char* data = stbi_load(
-        path.c_str(),
-        &m_width,
-        &m_height,
-        &m_channels,
-        0
-    );
+namespace {
+    std::vector<unsigned char> loadImageData(const std::string& path, int& width, int& height, int& channels) {
+        unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        if (!data) {
+            throw std::runtime_error("Failed to load image: " + path);
+        }
 
-    if (!data) {
-        throw std::runtime_error("Failed to load image");
+        std::vector<unsigned char> pixels(data, data + width * height * channels);
+        stbi_image_free(data);
+
+        return pixels;
     }
-
-    size_t size = m_width * m_height * m_channels;
-    m_pixels.assign(data, data + size);
-
-    stbi_image_free(data);
 }
+
+Image::Image(const std::string& path) 
+    : m_pixels(loadImageData(path, m_width, m_height, m_channels))
+{}
+
+Image::Image(int width, int height, int channels, std::vector<unsigned char>&& pixels)
+    : m_width(width), m_height(height), m_channels(channels), m_pixels(std::move(pixels))
+{}
+
 
 void Image::save(const std::string& path) {
     stbi_write_png(

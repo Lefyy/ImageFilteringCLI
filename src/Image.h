@@ -6,11 +6,11 @@
 class Image {
 public:
     Image(const std::string& path);
-    Image(int width, int height, int channels, std::vector<unsigned char>& pixels);
+    Image(int width, int height, int channels, const std::vector<unsigned char>& pixels);
     Image(int width, int height, int channels, std::vector<unsigned char>&& pixels);
 
 
-    void save(const std::string& path);
+    void save(const std::string& path) const;
 
     int width() const { return m_width; }
     int height() const { return m_height; }
