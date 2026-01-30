@@ -1,0 +1,19 @@
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Build folders
+/build/
+*.o
+*.obj
+*.exe
+*.out
+*.so
+*.a
+
+# IDE / editor
+.vscode/
+*.swp
