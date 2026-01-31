@@ -1,4 +1,5 @@
 #include "Image.h"
+#include "filters/Filters.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -9,6 +10,7 @@ int main(int argc, char** argv) {
 
     try {
         Image img(argv[1]);
+        img = invert(img);
         img.save(argv[2]);
 
         std::cout << "Saved to " << argv[2] << "\n";
