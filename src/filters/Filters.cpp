@@ -12,10 +12,10 @@ Image invert(const Image& src) {
     return Image(src.width(), src.height(), src.channels(), std::move(out_pixels));
 }
 
-struct BT601 {
-    static constexpr float R = 0.299f;
-    static constexpr float G = 0.587f;
-    static constexpr float B = 0.114f;
+struct BT709 {
+    static constexpr float R = 0.2126f;
+    static constexpr float G = 0.7152f;
+    static constexpr float B = 0.0722f;
 };
 
 Image grayscale(const Image& src) {
@@ -30,7 +30,7 @@ Image grayscale(const Image& src) {
     for (size_t i = 0; i < src_pixels.size(); i += src_c) {
 
         unsigned char gray = static_cast<unsigned char>(
-            BT601::R*src_pixels[i] + BT601::G*src_pixels[i+1] + BT601::B*src_pixels[i+2]
+            BT709::R*src_pixels[i] + BT709::G*src_pixels[i+1] + BT709::B*src_pixels[i+2]
         );
 
         out_pixels[i/src_c] = gray;
