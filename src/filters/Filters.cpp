@@ -12,11 +12,13 @@ Image invert(const Image& src) {
     return Image(src.width(), src.height(), src.channels(), std::move(out_pixels));
 }
 
-struct BT709 {
-    static constexpr float R = 0.2126f;
-    static constexpr float G = 0.7152f;
-    static constexpr float B = 0.0722f;
-};
+namespace {
+    struct BT709 {
+        static constexpr float R = 0.2126f;
+        static constexpr float G = 0.7152f;
+        static constexpr float B = 0.0722f;
+    };
+}
 
 Image grayscale(const Image& src) {
     int src_c = src.channels();
