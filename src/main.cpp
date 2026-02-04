@@ -1,5 +1,5 @@
-#include "Image.h"
-#include "filters/Filters.h"
+#include "../include/Image.h"
+#include "../include/filters/Filters.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 
     try {
         Image img(argv[1]);
-        img = gaussianBlur(img, 25);
+        img = Filters::gaussianBlur(img, 25);
         img.save(argv[2]);
 
         std::cout << "Saved to " << argv[2] << "\n";
