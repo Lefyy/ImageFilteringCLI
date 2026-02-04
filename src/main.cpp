@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 
     try {
         Image img(argv[1]);
-        img = grayscale(img);
+        img = gaussianBlur(img, 25);
         img.save(argv[2]);
 
         std::cout << "Saved to " << argv[2] << "\n";

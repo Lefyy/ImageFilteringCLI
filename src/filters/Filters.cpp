@@ -1,5 +1,8 @@
 #include "Filters.h"
 
+#include <cmath>
+#include <algorithm>
+
 
 Image invert(const Image& src) {
     const auto& src_pixels = src.pixels();
@@ -39,4 +42,66 @@ Image grayscale(const Image& src) {
     }
 
     return Image(src.width(), src.height(), out_c, std::move(out_pixels));
+}
+
+namespace {
+    std::vector<float> makeGaussianKernel(int radius) {
+        int size = radius * 2 + 1;
+        std::vector<float> kernel(size * size);
+
+        float sigma = radius / 2.0f;
+        float sum = 0.0f;
+
+        for (int y = -radius; y <= radius; ++y) {
+            for (int x = -radius; x <= radius; ++x) {
+                float value = std::exp(-(x*x + y*y) / (2 * sigma * sigma));
+                kernel[(y+radius)*size + (x+radius)] = value;
+                sum += value;
+            }
+        }
+
+        for (auto& p : kernel) {
+            p /= sum;
+        }
+
+        return kernel;
+    }
+}
+
+Image gaussianBlur(const Image& src, int radius) {
+    int w = src.width();
+    int h = src.height();
+    int c = src.channels();
+
+    auto kernel = makeGaussianKernel(radius);
+    int size = radius * 2 + 1;
+
+    const auto& src_pixels = src.pixels();
+    std::vector<unsigned char> out_pixels(src_pixels.size());
+
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            for (int ch = 0; ch < c; ++ch) {
+                
+                float sum = 0.0f;
+
+                for (int ky = -radius; ky <= radius; ++ky) {
+                    for (int kx = -radius; kx <= radius; ++kx) {
+
+                        int ix = std::clamp(x + kx, 0, w - 1);
+                        int iy = std::clamp(y + ky, 0, h - 1);
+
+                        int img_idx = (iy * w + ix) * c + ch;
+                        int k_idx = (ky + radius) * size + (kx + radius);
+
+                        sum += kernel[k_idx] * src_pixels[img_idx];
+                    }
+                }
+
+                out_pixels[(y * w + x) * c + ch] = static_cast<unsigned char>(sum);
+            }
+        }
+    }
+
+    return Image(w, h, c, std::move(out_pixels));
 }
