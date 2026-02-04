@@ -45,26 +45,30 @@ Image grayscale(const Image& src) {
 }
 
 namespace {
-    std::vector<float> makeGaussianKernel(int radius) {
+    std::vector<float> makeGaussianKernel1D(int radius) {
         int size = radius * 2 + 1;
-        std::vector<float> kernel(size * size);
+        std::vector<float> kernel(size);
 
         float sigma = radius / 2.0f;
         float sum = 0.0f;
 
-        for (int y = -radius; y <= radius; ++y) {
-            for (int x = -radius; x <= radius; ++x) {
-                float value = std::exp(-(x*x + y*y) / (2 * sigma * sigma));
-                kernel[(y+radius)*size + (x+radius)] = value;
-                sum += value;
-            }
+        for (int i = -radius; i <= radius; ++i) {
+            float value = std::exp(-(i*i) / (2 * sigma * sigma));
+            kernel[i+radius] = value;
+            sum += value;
         }
 
-        for (auto& p : kernel) {
-            p /= sum;
+        for (auto& v : kernel) {
+            v /= sum;
         }
 
         return kernel;
+    }
+
+    int reflect(int p, int max) {
+        if (p < 0) return -p;
+        if (p > max) return 2*max - p - 2;
+        return p;
     }
 }
 
@@ -73,11 +77,13 @@ Image gaussianBlur(const Image& src, int radius) {
     int h = src.height();
     int c = src.channels();
 
-    auto kernel = makeGaussianKernel(radius);
+    auto kernel = makeGaussianKernel1D(radius);
     int size = radius * 2 + 1;
 
     const auto& src_pixels = src.pixels();
-    std::vector<unsigned char> out_pixels(src_pixels.size());
+
+    std::vector<float> temp(w * h * c);
+    std::vector<unsigned char> out_pixels(w * h * c);
 
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
@@ -85,20 +91,32 @@ Image gaussianBlur(const Image& src, int radius) {
                 
                 float sum = 0.0f;
 
-                for (int ky = -radius; ky <= radius; ++ky) {
-                    for (int kx = -radius; kx <= radius; ++kx) {
+                for (int k = -radius; k <= radius; ++k) {
+                    int ix = reflect(x + k, w - 1);
+                    int idx = (y * w + ix) * c + ch;
 
-                        int ix = std::clamp(x + kx, 0, w - 1);
-                        int iy = std::clamp(y + ky, 0, h - 1);
-
-                        int img_idx = (iy * w + ix) * c + ch;
-                        int k_idx = (ky + radius) * size + (kx + radius);
-
-                        sum += kernel[k_idx] * src_pixels[img_idx];
-                    }
+                    sum += kernel[k + radius] * src_pixels[idx];
                 }
 
-                out_pixels[(y * w + x) * c + ch] = static_cast<unsigned char>(sum);
+                temp[(y * w + x) * c + ch] = sum;
+            }
+        }
+    }
+
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            for (int ch = 0; ch < c; ++ch) {
+                
+                float sum = 0.0f;
+
+                for (int k = -radius; k <= radius; ++k) {
+                    int iy = reflect(y + k, h - 1);
+                    int idx = (iy * w + x) * c + ch;
+
+                    sum += kernel[k + radius] * temp[idx];
+                }
+
+                out_pixels[(y * w + x) * c + ch] = static_cast<unsigned char>(std::clamp(sum + 0.5f, 0.0f, 255.0f));
             }
         }
     }
