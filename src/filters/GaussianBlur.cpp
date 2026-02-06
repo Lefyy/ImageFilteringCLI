@@ -1,4 +1,4 @@
-#include "../../include/Image.h"
+#include "../../include/filters/Filters.h"
 
 #include <cmath>
 #include <thread>
@@ -97,13 +97,13 @@ namespace {
     }
 }
 
-Image gaussianBlurSingle(const Image& src, int radius) {
-    int w = src.width();
-    int h = src.height();
-    int c = src.channels();
+ImagePtr gaussianBlurSingle(ImagePtr src, int radius) {
+    int w = src->width();
+    int h = src->height();
+    int c = src->channels();
 
     auto kernel = makeGaussianKernel1D(radius);
-    const auto& src_pixels = src.pixels();
+    const auto& src_pixels = src->pixels();
 
     std::vector<float> temp(w * h * c);
     std::vector<unsigned char> out(w * h * c);
@@ -111,16 +111,16 @@ Image gaussianBlurSingle(const Image& src, int radius) {
     convolveHorizontal(src_pixels, temp, w, h, c, kernel, radius, 0, h);
     convolveVertical(temp, out, w, h, c, kernel, radius, 0, h);
 
-    return Image(w, h, c, std::move(out));
+    return std::make_unique<Image>(w, h, c, std::move(out));
 }
 
-Image gaussianBlurParallel(const Image& src, int radius, int numThreads) {
-    int w = src.width();
-    int h = src.height();
-    int c = src.channels();
+ImagePtr gaussianBlurParallel(ImagePtr src, int radius, int numThreads) {
+    int w = src->width();
+    int h = src->height();
+    int c = src->channels();
 
     auto kernel = makeGaussianKernel1D(radius);
-    const auto& src_pixels = src.pixels();
+    const auto& src_pixels = src->pixels();
 
     std::vector<float> temp(w * h * c);
     std::vector<unsigned char> out(w * h * c);
@@ -133,13 +133,13 @@ Image gaussianBlurParallel(const Image& src, int radius, int numThreads) {
         convolveVertical(temp, out, w, h, c, kernel, radius, y0, y1);
     });
 
-    return Image(w, h, c, std::move(out));
+    return std::make_unique<Image>(w, h, c, std::move(out));
 }
 
 namespace Filters {
-    Image gaussianBlur(const Image& src, int radius, bool parallel, int numThreads) {
+    ImagePtr gaussianBlur(ImagePtr src, int radius, bool parallel, int numThreads) {
         if (!parallel) {
-            return gaussianBlurSingle(src, radius);
+            return gaussianBlurSingle(std::move(src), radius);
         }
 
         if (numThreads <= 0) {
@@ -147,6 +147,6 @@ namespace Filters {
             if (numThreads <= 0) numThreads = 4;
         }
 
-        return gaussianBlurParallel(src, radius, numThreads);
+        return gaussianBlurParallel(std::move(src), radius, numThreads);
     }
 }

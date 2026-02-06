@@ -1,11 +1,10 @@
 #include "../../include/pipeline/Pipeline.h"
 
-Image runPipeline(const Image& input, const std::vector<Filter>& filters) {
-    Image current = input;
+ImagePtr runPipeline(ImagePtr input, const std::vector<Filter>& filters) {
 
     for (const auto& f : filters) {
-        current = f(current);
+        input = f(std::move(input));
     }
 
-    return current;
+    return input;
 }

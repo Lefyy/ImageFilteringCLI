@@ -3,7 +3,9 @@
 #include "../Image.h"
 #include <functional>
 #include <vector>
+#include <memory>
 
-using Filter = std::function<Image(const Image&)>;
+using ImagePtr = std::unique_ptr<Image>;
+using Filter = std::function<ImagePtr(ImagePtr)>;
 
-Image runPipeline(const Image& input, const std::vector<Filter>& filters);
+ImagePtr runPipeline(ImagePtr input, const std::vector<Filter>& filters);

@@ -1,4 +1,4 @@
-#include "../../include/Image.h"
+#include "../../include/filters/Filters.h"
 
 namespace {
     struct BT709 {
@@ -9,14 +9,14 @@ namespace {
 }
 
 namespace Filters {
-    Image grayscale(const Image& src) {
-        int src_c = src.channels();
-        const auto& src_pixels = src.pixels();
+    ImagePtr grayscale(ImagePtr src) {
+        int src_c = src->channels();
+        const auto& src_pixels = src->pixels();
 
-        if (src_c < 3) return src;
+        if (src_c < 3) return std::move(src);
 
         int out_c = 1;
-        std::vector<unsigned char> out_pixels(src.width() * src.height());
+        std::vector<unsigned char> out_pixels(src->width() * src->height());
 
         for (size_t i = 0; i < src_pixels.size(); i += src_c) {
 
@@ -27,6 +27,6 @@ namespace Filters {
             out_pixels[i/src_c] = gray;
         }
 
-        return Image(src.width(), src.height(), out_c, std::move(out_pixels));
+        return std::make_unique<Image>(src->width(), src->height(), out_c, std::move(out_pixels));
     }
 }

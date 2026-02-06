@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     }
 
     try {
-        Image img(argv[1]);
+        auto img = std::make_unique<Image>(argv[1]);
 
         auto registry = createRegistry();
         std::vector<Filter> pipeline;
@@ -20,8 +20,8 @@ int main(int argc, char** argv) {
             pipeline.push_back(parseFilter(argv, i, registry));
         }
 
-        Image result = runPipeline(img, pipeline);
-        result.save(argv[2]);
+        auto result = runPipeline(std::move(img), pipeline);
+        result->save(argv[2]);
 
         std::cout << "Saved to " << argv[2] << "\n";
     } catch (const std::exception& e) {
