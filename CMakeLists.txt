@@ -12,4 +12,5 @@ add_executable(ImageFilteringCLI
     src/filters/Filters.cpp
     src/pipeline/Pipeline.cpp
     src/pipeline/Registry.cpp
+    src/cli/FilterParser.cpp
 )
